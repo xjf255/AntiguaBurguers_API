@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.generator.EventType;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,11 +17,10 @@ import java.util.List;
 @Table(name = "combo")
 public class Combo {
     @Id
-    @Generated(GenerationTime.INSERT)
-    @Column(insertable = false, updatable = false)
+    @Column(name = "num_combo", insertable = false, updatable = false)
     private String num_combo;
     private String nombre;
-    private Double costo;
+    private BigDecimal costo;
     private String descripcion;
     private String img;
     private Boolean existencia = true;

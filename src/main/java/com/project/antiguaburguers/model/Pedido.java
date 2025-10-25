@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -39,6 +40,14 @@ public class Pedido {
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
 
+    @OneToMany(
+            mappedBy = "pedido",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<DetallePedido> detalles = new java.util.ArrayList<>();
+
     @PrePersist
     public void onCreate() {
         created_at = LocalDateTime.now();
@@ -49,5 +58,4 @@ public class Pedido {
     public void onUpdate() {
         updated_at = LocalDateTime.now();
     }
-
 }

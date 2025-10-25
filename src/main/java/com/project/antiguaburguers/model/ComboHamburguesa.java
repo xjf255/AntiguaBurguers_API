@@ -13,10 +13,10 @@ public class ComboHamburguesa {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "num_combo", nullable = false)
-    private Combo num_combo;
+    private Combo combo;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nombre_hamburguesa", nullable = false)
-    private Hamburguesa nombre_hamburguesa;
+    private Hamburguesa nombreHamburguesa;
 }

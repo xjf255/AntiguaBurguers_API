@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,8 +17,8 @@ public class Complemento {
     private String nombre;
     private String img;
     @Column(nullable = false)
-    private Double costo;
-    private Double costo_combo;
+    private BigDecimal costo;
+    private BigDecimal costo_combo;
     private Boolean existencia = true;
     private LocalDateTime created_at;
 

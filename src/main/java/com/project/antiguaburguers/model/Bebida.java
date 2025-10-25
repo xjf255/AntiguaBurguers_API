@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -12,21 +13,27 @@ import java.time.LocalDateTime;
 @Table(name = "bebida")
 @IdClass(BebidaId.class)
 public class Bebida {
-    @Id
-    @Column(length = 150, nullable = false)
-    private String nombre;
-    @Id
-    @Column(length = 20, nullable = false)
-    private String cantidad;
-    @Column(nullable = false)
-    private Double costo;
-    private Double costo_combo;
-    private String img;
-    private Boolean existencia = true;
-    private LocalDateTime created_at;
 
-    @PrePersist
-    public void onCreate() {
-        created_at = LocalDateTime.now();
-    }
+    @Id
+    @Column(name = "nombre", length = 150)
+    private String nombre;
+
+    @Id
+    @Column(name = "cantidad", length = 20)
+    private String cantidad;
+
+    @Column(name = "costo", nullable = false, precision = 10, scale = 2)
+    private BigDecimal costo;
+
+    @Column(name = "costo_combo", columnDefinition = "DECIMAL(10,2)")
+    private BigDecimal costoCombo;
+
+    @Column(name = "img", length = 500)
+    private String img;
+
+    @Column(name = "existencia")
+    private Boolean existencia = true;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 }

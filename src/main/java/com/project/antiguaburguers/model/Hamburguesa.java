@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -14,8 +15,8 @@ public class Hamburguesa {
     @Id
     private String nombre;
     @Column(nullable = false)
-    private double costo;
-    private double costo_combo;
+    private BigDecimal costo;
+    private BigDecimal costo_combo;
     private String img;
     private boolean existencia = true;
     private LocalDateTime created_at;
