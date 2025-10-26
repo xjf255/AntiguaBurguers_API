@@ -16,7 +16,7 @@ public class Hamburguesa {
     private String nombre;
     @Column(nullable = false)
     private BigDecimal costo;
-    private BigDecimal costo_combo;
+    private BigDecimal costoCombo;
     private String img;
     private boolean existencia = true;
     private LocalDateTime created_at;

@@ -18,7 +18,7 @@ public class Complemento {
     private String img;
     @Column(nullable = false)
     private BigDecimal costo;
-    private BigDecimal costo_combo;
+    private BigDecimal costoCombo;
     private Boolean existencia = true;
     private LocalDateTime created_at;
 
