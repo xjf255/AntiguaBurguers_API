@@ -47,4 +47,19 @@ public class ClienteService {
         clienteRepository.save(cliente);
         return mapper.toDTO(cliente);
     }
+    @Transactional(readOnly = true)
+    public List<ClienteDTO> obtenerTodos() {
+        return clienteRepository.findAll()
+                .stream()
+                .map(mapper::toDTO)
+                .toList();
+    }
+
+    @Transactional
+    public void eliminarCliente(String dpi) {
+        var cliente = clienteRepository.findById(dpi)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado"));
+        clienteRepository.delete(cliente);
+    }
+
 }

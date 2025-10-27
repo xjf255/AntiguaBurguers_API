@@ -7,6 +7,7 @@ import com.project.antiguaburguers.mapper.PedidoCreateMapper;
 import com.project.antiguaburguers.mapper.PedidoMapper;
 import com.project.antiguaburguers.model.*;
 import com.project.antiguaburguers.repository.*;
+import com.project.antiguaburguers.utils.EstadoEntregaEnum;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,8 @@ public class PedidoService {
 
     private final PedidoMapper pedidoMapper;
     private final PedidoCreateMapper createMapper;
+    private final RepartidorRepository repartidorRepository;
+    private final EstadoEntregaRepository estadoEntregaRepository;
 
     public PedidoService(
             PedidoRepository pedidoRepo,
@@ -39,8 +42,8 @@ public class PedidoService {
             BebidaRepository bebidaRepo,
             ComplementoRepository complementoRepo,
             PedidoMapper pedidoMapper,
-            PedidoCreateMapper createMapper
-    ) {
+            PedidoCreateMapper createMapper,
+            RepartidorRepository repartidorRepository, EstadoEntregaRepository estadoEntregaRepository) {
         this.pedidoRepo = pedidoRepo;
         this.detalleRepo = detalleRepo;
         this.clienteRepo = clienteRepo;
@@ -51,6 +54,8 @@ public class PedidoService {
         this.complementoRepo = complementoRepo;
         this.pedidoMapper = pedidoMapper;
         this.createMapper = createMapper;
+        this.repartidorRepository = repartidorRepository;
+        this.estadoEntregaRepository = estadoEntregaRepository;
     }
 
     @Transactional

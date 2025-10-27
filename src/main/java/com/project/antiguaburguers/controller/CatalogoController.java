@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 @RestController
 @RequestMapping("/catalogo")
 public class CatalogoController {
-
     private final MenuService menuService;
     private final PrecioService precioService;
 
@@ -29,50 +28,76 @@ public class CatalogoController {
     public List<ItemCatalogoDTO> listarCatalogo(@RequestParam(required = false) String tipo) {
         var hoy = LocalDate.now();
 
-        Stream<ItemCatalogoDTO> hamburguesas = menuService.hambActivas().stream().map(h ->
-                new ItemCatalogoDTO(
-                        "HAMBURGUESA",
-                        h.getNombre(),
-                        h.getCosto(),
-                        precioService.precioVigenteIndividual("HAMBURGUESA", String.valueOf(h.getNombre()), h.getCostoCombo(), hoy),
-                        h.isExistencia()
-                )
-        );
-
-        Stream<ItemCatalogoDTO> bebidas = menuService.bebidasActivas().stream().map(b ->
-                new ItemCatalogoDTO(
-                        "BEBIDA",
-                        b.getNombre(),
-                        b.getCosto(),
-                        precioService.precioVigenteIndividual("BEBIDA", b.getNombre(), b.getCostoCombo(), hoy),
-                        b.getExistencia()
-                )
-        );
-
-        Stream<ItemCatalogoDTO> complementos = menuService.complActivos().stream().map(c ->
-                new ItemCatalogoDTO(
-                        "COMPLEMENTO",
-                        c.getNombre(),
-                        c.getCosto(),
-                        precioService.precioVigenteIndividual("COMPLEMENTO", String.valueOf(c.getNombre()), c.getCostoCombo(), hoy),
-                        c.getExistencia()
-                )
-        );
-
-        Stream<ItemCatalogoDTO> combos = menuService.listarCombosActivos().stream().map(cb -> {
-            BigDecimal precioLista = cb.getPrecio(); // o calcula sumando componentes si así lo definiste
-            BigDecimal vigente = precioService.precioVigenteIndividual("COMBO", String.valueOf(cb.getId()), precioLista, hoy);
-            return new ItemCatalogoDTO(
-                    "COMBO",
-                    cb.getNombre(),
+        Stream<ItemCatalogoDTO> hamburguesas = menuService.listarHamburguesasDisponibles().stream().map(h -> {
+            BigDecimal precioLista = h.getCosto(); // base para individual
+            BigDecimal vigente = precioService.precioVigenteIndividual(
+                    "HAMBURGUESA",
+                    h.getNombre(),
                     precioLista,
-                    cb.isActivo()
+                    hoy
+            );
+            return new ItemCatalogoDTO(
+                    "HAMBURGUESA",
+                    h.getNombre(),     // ID legible
+                    precioLista,
+                    vigente,
+                    h.isExistencia()
             );
         });
 
-        Stream<ItemCatalogoDTO> union = Stream.of(hamburguesas, bebidas, complementos, combos)
-                .flatMap(s -> s);
+        Stream<ItemCatalogoDTO> bebidas = menuService.listarBebidasDisponibles().stream().map(b -> {
+            String bebidaIdStr = b.getNombre() + "|" + b.getCantidad(); // ID compuesto en string
+            BigDecimal precioLista = b.getCosto();
+            BigDecimal vigente = precioService.precioVigenteIndividual(
+                    "BEBIDA",
+                    bebidaIdStr,
+                    precioLista,
+                    hoy
+            );
+            return new ItemCatalogoDTO(
+                    "BEBIDA",
+                    bebidaIdStr,
+                    precioLista,
+                    vigente,
+                    Boolean.TRUE.equals(b.getExistencia())
+            );
+        });
 
+        Stream<ItemCatalogoDTO> complementos = menuService.listarComplementosDisponibles().stream().map(c -> {
+            BigDecimal precioLista = c.getCosto();
+            BigDecimal vigente = precioService.precioVigenteIndividual(
+                    "COMPLEMENTO",
+                    c.getNombre(),
+                    precioLista,
+                    hoy
+            );
+            return new ItemCatalogoDTO(
+                    "COMPLEMENTO",
+                    c.getNombre(),
+                    precioLista,
+                    vigente,
+                    Boolean.TRUE.equals(c.getExistencia())
+            );
+        });
+
+        Stream<ItemCatalogoDTO> combos = menuService.listarCombosDisponibles().stream().map(cb -> {
+            BigDecimal precioLista = cb.getCosto(); // si calculas por componentes, cámbialo
+            BigDecimal vigente = precioService.precioVigenteIndividual(
+                    "COMBO",
+                    String.valueOf(cb.getNumCombo()),
+                    precioLista,
+                    hoy
+            );
+            return new ItemCatalogoDTO(
+                    "COMBO",
+                    String.valueOf(cb.getNumCombo()),
+                    precioLista,
+                    vigente,
+                    cb.getExistencia()
+            );
+        });
+
+        Stream<ItemCatalogoDTO> union = Stream.of(hamburguesas, bebidas, complementos, combos).flatMap(s -> s);
         if (tipo == null) return union.toList();
         return union.filter(it -> it.tipo().equalsIgnoreCase(tipo)).toList();
     }

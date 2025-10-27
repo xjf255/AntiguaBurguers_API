@@ -14,7 +14,7 @@ import org.mapstruct.Mapper;
 public interface RefMappers {
 
     default ComboRefDTO toRef(Combo combo) {
-        return (combo == null) ? null : new ComboRefDTO(combo.getNum_combo());
+        return (combo == null) ? null : new ComboRefDTO(combo.getNumCombo());
     }
 
     default HamburguesaRefDTO toRef(Hamburguesa h) {
