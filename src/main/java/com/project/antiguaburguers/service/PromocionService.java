@@ -1,5 +1,6 @@
 package com.project.antiguaburguers.service;
 
+import com.project.antiguaburguers.dto.PromocionDTO;
 import com.project.antiguaburguers.model.Combo;
 import com.project.antiguaburguers.model.Promocion;
 import com.project.antiguaburguers.repository.ComboRepository;
@@ -11,100 +12,121 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PromocionService {
 
     private final PromocionRepository promoRepo;
     private final ComboRepository comboRepo;
+    private final PromocionRepository promocionRepository;
+    private final ComboRepository comboRepository;
 
-    public PromocionService(PromocionRepository promoRepo, ComboRepository comboRepo) {
+    public PromocionService(PromocionRepository promoRepo, ComboRepository comboRepo, PromocionRepository promocionRepository, ComboRepository comboRepository) {
         this.promoRepo = promoRepo;
         this.comboRepo = comboRepo;
+        this.promocionRepository = promocionRepository;
+        this.comboRepository = comboRepository;
     }
 
     @Transactional
-    public Promocion crear(Promocion p) {
-        validarDescuento(p.getDescuento());
-        // si viene combo, valida que exista
-        if (p.getCombo() != null) {
-            Combo combo = comboRepo.findById(p.getCombo().getNumCombo())
-                    .orElseThrow(() -> new EntityNotFoundException("Combo no existe: " + p.getCombo().getNumCombo()));
-            p.setCombo(combo);
-        }
-        return promoRepo.save(p); // numPromocion lo genera la BD
+    public List<PromocionDTO> listarTodas() {
+        return promocionRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public Promocion actualizar(String numPromocion, Promocion body) {
-        Promocion existente = promoRepo.findById(numPromocion)
-                .orElseThrow(() -> new EntityNotFoundException("Promoción no encontrada: " + numPromocion));
-
-        validarDescuento(body.getDescuento());
-        existente.setDescuento(body.getDescuento());
-        existente.setFechaInicio(body.getFechaInicio());
-        existente.setFechaFin(body.getFechaFin());
-        existente.setDescripcion(body.getDescripcion());
-
-        if (body.getCombo() != null) {
-            Combo combo = comboRepo.findById(body.getCombo().getNumCombo())
-                    .orElseThrow(() -> new EntityNotFoundException("Combo no existe: " + body.getCombo().getNumCombo()));
-            existente.setCombo(combo);
-        } else {
-            existente.setCombo(null);
-        }
-
-        return promoRepo.save(existente);
+    public List<PromocionDTO> listarVigentes() {
+        LocalDate hoy = LocalDate.now();
+        return promocionRepository.findAll().stream()
+                .filter(p ->
+                        (p.getFechaInicio() == null || !hoy.isBefore(p.getFechaInicio())) &&
+                                (p.getFechaFin() == null || !hoy.isAfter(p.getFechaFin()))
+                )
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
-    @Transactional
-    public void eliminar(String numPromocion) {
-        if (!promoRepo.existsById(numPromocion))
-            throw new EntityNotFoundException("Promoción no encontrada: " + numPromocion);
-        promoRepo.deleteById(numPromocion);
+    private PromocionDTO toDTO(Promocion p) {
+        return new PromocionDTO(
+                p.getNumPromocion(),
+                p.getCombo() != null ? p.getCombo().getNumCombo() : null,
+                p.getCombo() != null ? p.getCombo().getImg() : null,
+                p.getDescuento(),
+                p.getFechaInicio(),
+                p.getFechaFin(),
+                p.getDescripcion()
+        );
     }
-
-    @Transactional
-    public List<Promocion> listar() {
-        return promoRepo.findAll();
-    }
-
-    @Transactional
-    public List<Promocion> listarPorCombo(String numCombo) {
-        return promoRepo.findByCombo_NumCombo(numCombo);
-    }
-
-    @Transactional
-    public List<Promocion> listarVigentes(LocalDate fecha) {
-        return promoRepo.promocionVigente("Combo",null, fecha);
-    }
-
-    @Transactional
-    public List<Promocion> listarVigentesPorCombo(String numCombo, LocalDate fecha) {
-        return promoRepo.promocionVigente("Combo",numCombo, fecha);
-    }
-
-    @Transactional
-    public BigDecimal precioVigenteCombo(String numCombo, BigDecimal precioLista, LocalDate fecha) {
-        if (precioLista == null) throw new IllegalArgumentException("precioLista requerido");
-        var promos = promoRepo.promocionVigente("Combo",numCombo, fecha);
-        if (promos.isEmpty()) return precioLista;
-
-        BigDecimal mejor = BigDecimal.ZERO; // mejor % de descuento
-        for (var p : promos) {
-            if (p.getDescuento() != null && p.getDescuento().compareTo(mejor) > 0) {
-                mejor = p.getDescuento();
-            }
-        }
-        // precio - (precio * mejor / 100)
-        BigDecimal rebaja = precioLista.multiply(mejor).divide(BigDecimal.valueOf(100));
-        BigDecimal finalPrice = precioLista.subtract(rebaja);
-        return finalPrice.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : finalPrice;
-    }
-
     private void validarDescuento(BigDecimal d) {
         if (d == null || d.compareTo(BigDecimal.ZERO) < 0 || d.compareTo(BigDecimal.valueOf(100)) > 0) {
             throw new IllegalArgumentException("El descuento debe estar entre 0 y 100");
         }
+    }
+
+    // POST: crear promoción
+    @Transactional
+    public PromocionDTO crearPromocion(PromocionDTO dto) {
+        var combo = comboRepository.findById(dto.numCombo())
+                .orElseThrow(() -> new EntityNotFoundException("Combo no encontrado: " + dto.numCombo()));
+
+        var promo = new Promocion();
+        promo.setCombo(combo);
+        promo.setDescuento(dto.descuento());
+        promo.setFechaInicio(dto.fechaInicio());
+        promo.setFechaFin(dto.fechaFin());
+        promo.setDescripcion(dto.descripcion());
+
+        promocionRepository.save(promo);
+
+        return new PromocionDTO(
+                promo.getNumPromocion(),
+                combo.getNumCombo(),
+                combo.getImg(),
+                promo.getDescuento(),
+                promo.getFechaInicio(),
+                promo.getFechaFin(),
+                promo.getDescripcion()
+        );
+    }
+
+    // PUT: actualizar promoción
+    @Transactional
+    public PromocionDTO actualizarPromocion(String numPromocion, PromocionDTO dto) {
+        var promo = promocionRepository.findById(numPromocion)
+                .orElseThrow(() -> new EntityNotFoundException("Promoción no encontrada: " + numPromocion));
+
+        if (dto.numCombo() != null) {
+            var combo = comboRepository.findById(dto.numCombo())
+                    .orElseThrow(() -> new EntityNotFoundException("Combo no encontrado: " + dto.numCombo()));
+            promo.setCombo(combo);
+        }
+
+        promo.setDescuento(dto.descuento());
+        promo.setFechaInicio(dto.fechaInicio());
+        promo.setFechaFin(dto.fechaFin());
+        promo.setDescripcion(dto.descripcion());
+
+        promocionRepository.save(promo);
+
+        return new PromocionDTO(
+                promo.getNumPromocion(),
+                promo.getCombo() != null ? promo.getCombo().getNumCombo() : null,
+                promo.getCombo() != null ? promo.getCombo().getImg() : null,
+                promo.getDescuento(),
+                promo.getFechaInicio(),
+                promo.getFechaFin(),
+                promo.getDescripcion()
+        );
+    }
+
+    // DELETE: eliminar promoción
+    @Transactional
+    public void eliminarPromocion(String numPromocion) {
+        if (!promocionRepository.existsById(numPromocion))
+            throw new EntityNotFoundException("Promoción no encontrada: " + numPromocion);
+
+        promocionRepository.deleteById(numPromocion);
     }
 }

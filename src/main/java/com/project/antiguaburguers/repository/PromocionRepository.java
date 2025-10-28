@@ -12,12 +12,15 @@ public interface PromocionRepository extends JpaRepository<Promocion, String> {
     List<Promocion> findByCombo_NumCombo(String numCombo);
 
     @Query("""
-      select p from Promocion p
-      where (:numCombo is null or p.combo.numCombo = :numCombo)
-        and (p.fechaInicio is null or p.fechaInicio <= :fecha)
-        and (p.fechaFin    is null or p.fechaFin    >= :fecha)
+       select p
+       from Promocion p
+       where (:numCombo is null or p.combo.numCombo = :numCombo)
+         and (:fecha    is null or
+              (coalesce(p.fechaInicio, :fecha) <= :fecha
+           and  coalesce(p.fechaFin,    :fecha) >= :fecha))
     """)
-    List<Promocion> promocionVigente(@Param("tipo") String tipo,
-                                     @Param("itemId") String itemId,
-                                     @Param("fecha") LocalDate fecha);
+    List<Promocion> promocionVigente(
+            @Param("numCombo") String numCombo,
+            @Param("fecha") LocalDate fecha
+    );
 }

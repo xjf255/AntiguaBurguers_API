@@ -13,8 +13,8 @@ public class PrecioService {
 
     public PrecioService(PromocionRepository promoRepo) { this.promoRepo = promoRepo; }
 
-    public BigDecimal precioVigenteIndividual(String tipo, String itemId, BigDecimal precioLista, LocalDate fecha) {
-        var promos = promoRepo.promocionVigente(tipo, itemId, fecha);
+    public BigDecimal precioVigenteIndividual(String tipo, BigDecimal precioLista, LocalDate fecha) {
+        var promos = promoRepo.promocionVigente(tipo, fecha);
         if (promos.isEmpty()) return precioLista;
 
         BigDecimal mejor = precioLista;

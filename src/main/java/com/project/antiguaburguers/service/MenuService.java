@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MenuService {
@@ -252,17 +253,100 @@ public class MenuService {
     }
 
     @Transactional
-    public List<ComboHamburguesa> hamburguesasDeCombo(String comboId) {
-        return chRepo.findAllByCombo_NumCombo(comboId);
+    public Combo actualizarCombo(String numCombo, CreateCombo dto) {
+        var combo = comboRepo.findById(numCombo)
+                .orElseThrow(() -> new EntityNotFoundException("Combo no encontrado: " + numCombo));
+
+        combo.setNombre(dto.nombre());
+        combo.setDescripcion(dto.descripcion());
+        combo.setCosto(dto.costo());
+        combo.setExistencia(dto.existencia());
+        combo.setImg(dto.img());
+
+        return comboRepo.save(combo);
     }
 
     @Transactional
-    public List<ComboBebida> bebidasDeCombo(String comboId) {
-        return cbRepo.findAllByCombo_NumCombo(comboId);
+    public List<ComboDetailDTO> listarCombosConDetalle() {
+        var combos = comboRepo.findComboByExistenciaTrue();
+
+        return combos.stream().map(combo -> {
+            var hambs = chRepo.findAllByCombo_NumCombo(combo.getNumCombo())
+                    .stream()
+                    .map(ch -> ch.getNombreHamburguesa().getNombre())
+                    .collect(Collectors.toList());
+
+            var bebidas = cbRepo.findAllByCombo_NumCombo(combo.getNumCombo())
+                    .stream()
+                    .map(cb -> cb.getBebida().getNombre() + " " + cb.getBebida().getCantidad())
+                    .collect(Collectors.toList());
+
+            var comps = ccRepo.findAllByCombo_NumCombo(combo.getNumCombo())
+                    .stream()
+                    .map(cc -> cc.getComplemento().getNombre())
+                    .collect(Collectors.toList());
+
+            return new ComboDetailDTO(
+                    combo.getNumCombo(),
+                    combo.getNombre(),
+                    combo.getDescripcion(),
+                    combo.getImg(),
+                    combo.getCosto(),
+                    combo.getExistencia(),
+                    hambs,
+                    bebidas,
+                    comps
+            );
+        }).toList();
     }
 
     @Transactional
-    public List<ComboComplemento> complementosDeCombo(String comboId) {
-        return ccRepo.findAllByCombo_NumCombo(comboId);
+    public ComboDetailDTO getComboConDetalle(String numCombo) {
+        var combo = comboRepo.findById(numCombo)
+                .orElseThrow(() -> new EntityNotFoundException("Combo no encontrado: " + numCombo));
+
+        var hambs = chRepo.findAllByCombo_NumCombo(numCombo)
+                .stream()
+                .map(ch -> ch.getNombreHamburguesa().getNombre())
+                .collect(Collectors.toList());
+
+        var bebidas = cbRepo.findAllByCombo_NumCombo(numCombo)
+                .stream()
+                .map(cb -> cb.getBebida().getNombre() + " " + cb.getBebida().getCantidad())
+                .collect(Collectors.toList());
+
+        var comps = ccRepo.findAllByCombo_NumCombo(numCombo)
+                .stream()
+                .map(cc -> cc.getComplemento().getNombre())
+                .collect(Collectors.toList());
+
+        return new ComboDetailDTO(
+                combo.getNumCombo(),
+                combo.getNombre(),
+                combo.getDescripcion(),
+                combo.getImg(),
+                combo.getCosto(),
+                combo.getExistencia(),
+                hambs,
+                bebidas,
+                comps
+        );
+    }
+
+    @Transactional
+    public void eliminarComboCompleto(String numCombo) {
+        var combo = comboRepo.findById(numCombo)
+                .orElseThrow(() -> new EntityNotFoundException("Combo no encontrado: " + numCombo));
+
+        var comboHamburguesas = chRepo.findAllByCombo_NumCombo(numCombo);
+        if (!comboHamburguesas.isEmpty()) chRepo.deleteAll(comboHamburguesas);
+
+        var comboBebidas = cbRepo.findAllByCombo_NumCombo(numCombo);
+        if (!comboBebidas.isEmpty()) cbRepo.deleteAll(comboBebidas);
+
+        var comboComplementos = ccRepo.findAllByCombo_NumCombo(numCombo);
+        if (!comboComplementos.isEmpty()) ccRepo.deleteAll(comboComplementos);
+
+        comboRepo.delete(combo);
     }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 @RestController
-@RequestMapping("/catalogo")
+@RequestMapping("api/catalogo")
 public class CatalogoController {
     private final MenuService menuService;
     private final PrecioService precioService;
@@ -32,7 +32,6 @@ public class CatalogoController {
             BigDecimal precioLista = h.getCosto(); // base para individual
             BigDecimal vigente = precioService.precioVigenteIndividual(
                     "HAMBURGUESA",
-                    h.getNombre(),
                     precioLista,
                     hoy
             );
@@ -50,7 +49,6 @@ public class CatalogoController {
             BigDecimal precioLista = b.getCosto();
             BigDecimal vigente = precioService.precioVigenteIndividual(
                     "BEBIDA",
-                    bebidaIdStr,
                     precioLista,
                     hoy
             );
@@ -67,7 +65,6 @@ public class CatalogoController {
             BigDecimal precioLista = c.getCosto();
             BigDecimal vigente = precioService.precioVigenteIndividual(
                     "COMPLEMENTO",
-                    c.getNombre(),
                     precioLista,
                     hoy
             );
@@ -84,7 +81,6 @@ public class CatalogoController {
             BigDecimal precioLista = cb.getCosto(); // si calculas por componentes, cámbialo
             BigDecimal vigente = precioService.precioVigenteIndividual(
                     "COMBO",
-                    String.valueOf(cb.getNumCombo()),
                     precioLista,
                     hoy
             );
