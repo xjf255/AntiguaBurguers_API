@@ -10,5 +10,7 @@ public record PromocionDTO(
         BigDecimal descuento,
         LocalDate fechaInicio,
         LocalDate fechaFin,
-        String descripcion
+        String descripcion,
+        BigDecimal costo,
+        String diasDisponibles
 ) {}

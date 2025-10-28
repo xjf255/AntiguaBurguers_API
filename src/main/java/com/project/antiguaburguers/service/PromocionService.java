@@ -10,7 +10,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,7 +59,9 @@ public class PromocionService {
                 p.getDescuento(),
                 p.getFechaInicio(),
                 p.getFechaFin(),
-                p.getDescripcion()
+                p.getDescripcion(),
+                p.getCombo() != null ? calcularTotal(p.getCombo().getCosto(), p.getDescuento()) : null,
+                calculoDiasDisponible(LocalDateTime.now(), p.getFechaFin().atTime(23, 59, 59))
         );
     }
     private void validarDescuento(BigDecimal d) {
@@ -87,7 +92,9 @@ public class PromocionService {
                 promo.getDescuento(),
                 promo.getFechaInicio(),
                 promo.getFechaFin(),
-                promo.getDescripcion()
+                promo.getDescripcion(),
+                promo.getCombo() != null ? calcularTotal(promo.getCombo().getCosto(), promo.getDescuento()) : null,
+                calculoDiasDisponible(LocalDateTime.now(), promo.getFechaFin().atTime(23, 59, 59))
         );
     }
 
@@ -117,7 +124,9 @@ public class PromocionService {
                 promo.getDescuento(),
                 promo.getFechaInicio(),
                 promo.getFechaFin(),
-                promo.getDescripcion()
+                promo.getDescripcion(),
+                promo.getCombo() != null ? calcularTotal(promo.getCombo().getCosto(), promo.getDescuento()) : null,
+                calculoDiasDisponible(LocalDateTime.now(), promo.getFechaFin().atTime(23, 59, 59))
         );
     }
 
@@ -128,5 +137,21 @@ public class PromocionService {
             throw new EntityNotFoundException("Promoción no encontrada: " + numPromocion);
 
         promocionRepository.deleteById(numPromocion);
+    }
+
+    private BigDecimal calcularTotal(BigDecimal costo, BigDecimal descuento){
+        BigDecimal totalDescuento = costo.multiply(descuento)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        return costo.subtract(totalDescuento);
+    }
+
+    private String calculoDiasDisponible(LocalDateTime inicio, LocalDateTime fin) {
+        Duration duration = Duration.between(inicio, fin);
+
+        long dias = duration.toDays();
+        long horas = duration.toHoursPart();
+        long minutos = duration.toMinutesPart();
+
+        return dias + " días, " + horas + " horas, " + minutos + " minutos";
     }
 }
