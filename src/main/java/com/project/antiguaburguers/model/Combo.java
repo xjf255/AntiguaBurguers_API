@@ -17,7 +17,7 @@ import java.util.List;
 @Table(name = "combo")
 public class Combo {
     @Id
-    @Column(name = "num_combo", insertable = false, updatable = false)
+    @Column(name = "num_combo", insertable = false, updatable = false, length = 6)
     private String numCombo;
     private String nombre;
     private BigDecimal costo;

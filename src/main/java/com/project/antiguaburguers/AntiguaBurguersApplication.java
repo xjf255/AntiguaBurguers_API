@@ -20,7 +20,7 @@ public class AntiguaBurguersApplication {
 			public void addCorsMappings(CorsRegistry registry) {
 				// /** => permite CORS en todas las rutas de la aplicacion
 				registry.addMapping("/**").allowedOrigins("*")
-						.allowedMethods("GET", "POST", "PUT", "DELETE")
+						.allowedMethods("GET", "POST", "PUT", "DELETE","PATCH")
 						.allowedHeaders("*");
 			}
 		};

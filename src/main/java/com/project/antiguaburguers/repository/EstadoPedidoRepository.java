@@ -1,7 +1,8 @@
 package com.project.antiguaburguers.repository;
 
 import com.project.antiguaburguers.model.EstadoPedido;
+import com.project.antiguaburguers.utils.EstadoPedidoEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EstadoPedidoRepository extends JpaRepository<EstadoPedido, String> {
+public interface EstadoPedidoRepository extends JpaRepository<EstadoPedido, EstadoPedidoEnum> {
 }

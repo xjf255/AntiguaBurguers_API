@@ -8,15 +8,22 @@ import com.project.antiguaburguers.mapper.PedidoMapper;
 import com.project.antiguaburguers.model.*;
 import com.project.antiguaburguers.repository.*;
 import com.project.antiguaburguers.utils.EstadoEntregaEnum;
+import com.project.antiguaburguers.utils.EstadoPedidoEnum;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class PedidoService {
+
+    @PersistenceContext
+    private EntityManager em;
 
     private final PedidoRepository pedidoRepo;
     private final DetallePedidoRepository detalleRepo;
@@ -58,6 +65,11 @@ public class PedidoService {
         this.estadoEntregaRepository = estadoEntregaRepository;
     }
 
+    private String nextPedidoId() {
+        Long seqVal = ((Number) em.createNativeQuery("SELECT NEXT VALUE FOR seq_num_pedido").getSingleResult()).longValue();
+        return "PED" + String.format("%07d", seqVal);
+    }
+
     @Transactional
     public List<PedidoDTO> listarPedidos() {
         return pedidoRepo.findAll()
@@ -78,10 +90,13 @@ public class PedidoService {
 
     @Transactional
     public PedidoDetailDTO crearPedido(CreatePedidoDTO dto) {
-
         Pedido pedido = createMapper.toEntity(dto);
+        pedido.setNumPedido(nextPedidoId()); // 👈 genera automáticamente el ID
 
-        EstadoPedido estadoInicial = estadoRepo.findById("PENDIENTE")
+
+        EstadoPedidoEnum estadoPedidoEnum = EstadoPedidoEnum.valueOf("PENDIENTE");
+
+        EstadoPedido estadoInicial = estadoRepo.findById(estadoPedidoEnum)
                 .orElseThrow(() -> new EntityNotFoundException("Estado inicial no encontrado"));
         pedido.setEstado(estadoInicial);
 
@@ -135,7 +150,9 @@ public class PedidoService {
         Pedido pedido = pedidoRepo.findById(numPedido)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido no encontrado"));
 
-        EstadoPedido estado = estadoRepo.findById(nuevoEstado.toUpperCase())
+        EstadoPedidoEnum estadoPedidoEnum = EstadoPedidoEnum.valueOf(nuevoEstado.toUpperCase());
+
+        EstadoPedido estado = estadoRepo.findById(estadoPedidoEnum)
                 .orElseThrow(() -> new EntityNotFoundException("Estado inválido: " + nuevoEstado));
 
         pedido.setEstado(estado);

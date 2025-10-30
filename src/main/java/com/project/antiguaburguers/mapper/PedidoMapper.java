@@ -17,7 +17,7 @@ public interface PedidoMapper {
     @Mappings({
             @Mapping(target = "numPedido", source = "numPedido"),
             @Mapping(target = "fecha",     source = "fecha"),
-            @Mapping(target = "estado",    source = "estado.estado"),
+            @Mapping(target = "estado",    source = "estado"),
             @Mapping(target = "clienteNombre",
                     expression = "java(p.getCliente() == null ? null : (p.getCliente().getNombre() + \" \" + p.getCliente().getApellido()))"),
             @Mapping(target = "clienteDpi", source = "cliente.dpi"),
