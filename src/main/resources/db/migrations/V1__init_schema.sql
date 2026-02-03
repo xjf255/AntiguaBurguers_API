@@ -24,6 +24,8 @@ CREATE TABLE usuario_cliente (
                                  CONSTRAINT fk_usuario_cliente_cliente FOREIGN KEY (dpi) REFERENCES cliente(dpi)
 );
 
+ALTER TABLE usuario_cliente ADD is_admin bit not null default 0;
+
 CREATE TABLE repartidor (
                             dpi VARCHAR(13) PRIMARY KEY,
                             nombre VARCHAR(100) NOT NULL,
