@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/clientes")
-@CrossOrigin(origins = "*") // opcional, útil para frontend en otro dominio
+@CrossOrigin(origins = "*")
 public class ClienteController {
 
     private final ClienteService clienteService;
@@ -20,10 +20,6 @@ public class ClienteController {
     public ClienteController(ClienteService clienteService) {
         this.clienteService = clienteService;
     }
-
-    /* ==============================
-       CONSULTAS / LECTURA
-       ============================== */
 
     // Buscar cliente por DPI
     @GetMapping("/{dpi}")
