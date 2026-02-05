@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE}
 
 ---
 spring:
@@ -71,8 +71,19 @@ security:
     secret: ${JWT_SECRET}
     expiration-minutes: ${TIME_EXPIRATION:120}
 
+admin:
+  username: ${ADMIN_USERNAME:admin}
+  password: ${ADMIN_PASSWORD:Admin123!}
+  nombre: ${ADMIN_NOMBRE:Antigua}
+  apellido: ${ADMIN_APELLIDO:Burguers}
+  email: ${ADMIN_EMAIL:antigua@gmail.com}
+  dpi: ${ADMIN_DPI:0000000000000}
+  telefono: ${ADMIN_TELEFONO:12345678}
+  prefijo-telefono: ${ADMIN_PREFIJO:502}
+  direccion: ${ADMIN_DIRECCION}
+
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: true
   api-docs:
     enabled: false

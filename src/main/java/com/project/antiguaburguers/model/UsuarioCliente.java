@@ -3,6 +3,8 @@ package com.project.antiguaburguers.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +18,7 @@ public class UsuarioCliente {
     @Column(name = "usuario", nullable = false)
     private String usuario;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
     @Column(name = "dpi", length = 13, nullable = false)
@@ -29,9 +31,11 @@ public class UsuarioCliente {
     @JoinColumn(name = "dpi", referencedColumnName = "dpi", insertable = false, updatable = false)
     private Cliente dpiCliente;
 
-    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

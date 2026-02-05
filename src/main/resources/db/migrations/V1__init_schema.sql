@@ -17,7 +17,7 @@ CREATE TABLE cliente (
 
 CREATE TABLE usuario_cliente (
                                  usuario VARCHAR(50) PRIMARY KEY,
-                                 password_hash VARBINARY(64) NOT NULL,
+                                 password_hash VARCHAR(100) NOT NULL,
                                  dpi VARCHAR(13) NOT NULL UNIQUE,
                                  created_at DATETIME2 DEFAULT SYSDATETIME(),
                                  updated_at DATETIME2 NULL,

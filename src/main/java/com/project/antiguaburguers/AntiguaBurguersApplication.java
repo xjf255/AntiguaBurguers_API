@@ -21,7 +21,8 @@ public class AntiguaBurguersApplication {
 				// /** => permite CORS en todas las rutas de la aplicacion
 				registry.addMapping("/**").allowedOrigins("*")
 						.allowedMethods("GET", "POST", "PUT", "DELETE","PATCH")
-						.allowedHeaders("http://localhost:5173");
+						//.allowedHeaders("http://localhost:5173");
+						.allowedHeaders("*");
 			}
 		};
 	}
