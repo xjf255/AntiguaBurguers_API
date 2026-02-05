@@ -2,6 +2,7 @@ package com.project.antiguaburguers.controller;
 
 import com.project.antiguaburguers.dto.ClienteDTO;
 import com.project.antiguaburguers.service.ClienteService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -38,10 +39,6 @@ public class ClienteController {
         var clientes = clienteService.obtenerTodos(); // te lo agrego abajo en el service
         return ResponseEntity.ok(clientes);
     }
-
-    /* ==============================
-       CREAR / ACTUALIZAR
-       ============================== */
 
     // Crear nuevo cliente
     @PostMapping

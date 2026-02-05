@@ -1,6 +1,11 @@
 package com.project.antiguaburguers.security;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,6 +37,16 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/api-docs",
                                 "/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/hamburguesas/**",
+                                "/api/bebidas/**",
+                                "/api/combos/**",
+                                "/api/complementos/**",
+                                "/api/promociones/**",
+                                "/api/catalogo/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.POST, "/api/clientes").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -46,5 +61,17 @@ public class SecurityConfig {
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                        )
+                );
     }
 }

@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/bebidas")
-@CrossOrigin(origins = "*") // opcional si tu frontend está en otro dominio
+@CrossOrigin(origins = "*")
 public class BebidaController {
 
     private final BebidaRepository bebidaRepository;

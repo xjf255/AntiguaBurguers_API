@@ -2,6 +2,7 @@ package com.project.antiguaburguers.controller;
 
 import com.project.antiguaburguers.model.Repartidor;
 import com.project.antiguaburguers.service.RepartidorService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,8 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/repartidores")
-@CrossOrigin(origins = "*") // opcional para el front
+@CrossOrigin(origins = "*")
 public class RepartidorController {
 
     private final RepartidorService repartidorService;
@@ -19,17 +21,11 @@ public class RepartidorController {
         this.repartidorService = repartidorService;
     }
 
-    /* ============================
-       LISTAR / CONSULTAR
-       ============================ */
-
-    // Lista todos los repartidores
     @GetMapping
     public ResponseEntity<List<Repartidor>> listarTodos() {
         return ResponseEntity.ok(repartidorService.findAll());
     }
 
-    // Lista solo los disponibles (estado = true)
     @GetMapping("/disponibles")
     public ResponseEntity<List<Repartidor>> listarDisponibles() {
         var disponibles = repartidorService.findAll()
@@ -39,7 +35,6 @@ public class RepartidorController {
         return ResponseEntity.ok(disponibles);
     }
 
-    // Buscar repartidor por DPI
     @GetMapping("/{dpi}")
     public ResponseEntity<Repartidor> obtenerPorDpi(@PathVariable String dpi) {
         var repartidor = repartidorService.findById(dpi);
@@ -47,10 +42,6 @@ public class RepartidorController {
                 ? ResponseEntity.ok(repartidor)
                 : ResponseEntity.notFound().build();
     }
-
-    /* ============================
-       CREAR / ACTUALIZAR / ELIMINAR
-       ============================ */
 
     // Crear nuevo repartidor
     @PostMapping

@@ -3,10 +3,9 @@ package com.project.antiguaburguers.controller;
 import com.project.antiguaburguers.dto.CreatePedidoDTO;
 import com.project.antiguaburguers.dto.PedidoDTO;
 import com.project.antiguaburguers.dto.PedidoDetailDTO;
-import com.project.antiguaburguers.model.Pedido;
 import com.project.antiguaburguers.service.PedidoService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +15,7 @@ import java.util.List;
 @Tag(name = "Pedidos", description = "API de gestion de pedidos")
 @RestController
 @RequestMapping("/api/pedidos")
+@SecurityRequirement(name = "bearerAuth")
 public class PedidoController {
 
     private final PedidoService pedidoService;

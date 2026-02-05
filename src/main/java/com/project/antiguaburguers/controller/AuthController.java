@@ -1,9 +1,6 @@
 package com.project.antiguaburguers.controller;
 
-import com.project.antiguaburguers.dto.AuthResponseDTO;
-import com.project.antiguaburguers.dto.LoginResponseDTO;
-import com.project.antiguaburguers.dto.LoginUsuarioClienteDTO;
-import com.project.antiguaburguers.dto.SignInUsuarioClienteDTO;
+import com.project.antiguaburguers.dto.*;
 import com.project.antiguaburguers.service.UsuarioClienteService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
