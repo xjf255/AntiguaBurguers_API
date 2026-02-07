@@ -3,7 +3,9 @@ package com.project.antiguaburguers.service;
 import com.project.antiguaburguers.dto.LoginResponseDTO;
 import com.project.antiguaburguers.dto.LoginUsuarioClienteDTO;
 import com.project.antiguaburguers.dto.SignInUsuarioClienteDTO;
+import com.project.antiguaburguers.model.Cliente;
 import com.project.antiguaburguers.model.UsuarioCliente;
+import com.project.antiguaburguers.repository.ClienteRepository;
 import com.project.antiguaburguers.repository.UsuarioClienteRepository;
 import com.project.antiguaburguers.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,16 +19,18 @@ public class UsuarioClienteService {
 
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
+    private final ClienteRepository clienteRepository;
     private final UsuarioClienteRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UsuarioClienteService(UsuarioClienteRepository usuarioRepository,
                                  AuthenticationManager authManager,
-                                 JwtService jwtService, PasswordEncoder passwordEncoder) {
+                                 JwtService jwtService, PasswordEncoder passwordEncoder, ClienteRepository clienteRepository) {
         this.usuarioRepository = usuarioRepository;
         this.authManager = authManager;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.clienteRepository = clienteRepository;
     }
 
     public String signIn(SignInUsuarioClienteDTO dto) {
@@ -48,7 +52,10 @@ public class UsuarioClienteService {
         var auth = new UsernamePasswordAuthenticationToken(dto.usuario(), dto.password());
         authManager.authenticate(auth); // si falla -> exception
 
+        UsuarioCliente usuario = usuarioRepository.findById(dto.usuario()).get();
+        Cliente cliente = clienteRepository.findById(usuario.getDpi()).get();
+
         String token = jwtService.generateToken(dto.usuario());
-        return new LoginResponseDTO(token, dto.usuario());
+        return new LoginResponseDTO(token, dto.usuario(), cliente.getDpi(), usuario.getIsAdmin());
     }
 }
