@@ -8,6 +8,8 @@ import com.project.antiguaburguers.model.UsuarioCliente;
 import com.project.antiguaburguers.repository.ClienteRepository;
 import com.project.antiguaburguers.repository.UsuarioClienteRepository;
 import com.project.antiguaburguers.security.JwtService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +22,7 @@ public class UsuarioClienteService {
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
     private final ClienteRepository clienteRepository;
+    private final ClienteService clienteService;
     private final UsuarioClienteRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -33,7 +36,7 @@ public class UsuarioClienteService {
         this.clienteRepository = clienteRepository;
     }
 
-    public String signIn(SignInUsuarioClienteDTO dto) {
+    public String register(SignInUsuarioClienteDTO dto) {
         // validar que no exista usuario
         if (usuarioRepository.existsById(dto.usuario())) {
             throw new IllegalArgumentException("El usuario ya existe");
@@ -45,17 +48,30 @@ public class UsuarioClienteService {
         entity.setPasswordHash(passwordEncoder.encode(dto.password()));
 
         usuarioRepository.save(entity);
-        return entity.getUsuario(); // o retorna un UUID si tuvieras uno
+        return jwtService.generateToken(dto.usuario(), "CLIENTE" );
+    }
+
+    @Transactional
+    public String registerClient(){
+        Cliente
     }
 
     public LoginResponseDTO logIn(LoginUsuarioClienteDTO dto) {
         var auth = new UsernamePasswordAuthenticationToken(dto.usuario(), dto.password());
         authManager.authenticate(auth); // si falla -> exception
 
-        UsuarioCliente usuario = usuarioRepository.findById(dto.usuario()).get();
-        Cliente cliente = clienteRepository.findById(usuario.getDpi()).get();
+        UsuarioCliente usuario = usuarioRepository.findById(dto.usuario()).orElseThrow(
+                () -> new EntityNotFoundException(
+                        "Usuario no encontrado con id: " + dto.usuario())
+        );
+        Cliente cliente = clienteRepository.findById(usuario.getDpi()).orElseThrow(
+                () -> new IllegalArgumentException("El cliente no existe")
+        );
 
-        String token = jwtService.generateToken(dto.usuario());
-        return new LoginResponseDTO(token, dto.usuario(), cliente.getDpi(), usuario.getIsAdmin());
+        Boolean isAdmin = Boolean.TRUE.equals(usuario.getIsAdmin());
+
+        String token = jwtService.generateToken(dto.usuario(), (isAdmin) ? "ADMIN" : "CLIENTE");
+        String refreshToken = jwtService.generateRefreshToken(dto.usuario(), isAdmin ? "ADMIN" : "CLIENTE");
+        return new LoginResponseDTO(token, dto.usuario(), cliente.getDpi(), isAdmin);
     }
 }

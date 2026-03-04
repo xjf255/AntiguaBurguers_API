@@ -14,25 +14,37 @@ public class JwtService {
 
     private final Key key;
     private final long expirationMs;
+    private final long expirationRefreshMinutes;
 
     public JwtService(
             @Value("${security.jwt.secret}") String secret,
-            @Value("${security.jwt.expiration-minutes}") long expirationMinutes
+            @Value("${security.jwt.expiration-minutes}") long expirationMinutes,
+            @Value("${security.jwt.expiration-refresh-minutes}") long expirationRefreshMinutes
     ) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = expirationMinutes * 60_000;
+        this.expirationRefreshMinutes = expirationRefreshMinutes + 60_000;
     }
 
-    public String generateToken(String username) {
+    private String generateToken(String username, String role, Long time) {
         Date now = new Date();
-        Date exp = new Date(now.getTime() + expirationMs);
+        Date exp = new Date(now.getTime() + time);
 
         return Jwts.builder()
                 .setSubject(username)
+                .setPayload('{' + role + '}')
                 .setIssuedAt(now)
                 .setExpiration(exp)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String generateToken(String username, String role) {
+        return generateToken(username, role, expirationMs);
+    }
+
+    public String generateRefreshToken(String username, String role) {
+        return generateToken(username, role, expirationRefreshMinutes);
     }
 
     public String extractUsername(String token) {

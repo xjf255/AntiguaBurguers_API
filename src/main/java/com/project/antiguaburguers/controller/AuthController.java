@@ -18,7 +18,7 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     public ResponseEntity<AuthResponseDTO> signIn(@RequestBody SignInUsuarioClienteDTO dto) {
-        String userId = usuarioClienteService.signIn(dto);
+        String userId = usuarioClienteService.register(dto);
         return ResponseEntity.ok(new AuthResponseDTO(true, userId, "Usuario creado"));
     }
 

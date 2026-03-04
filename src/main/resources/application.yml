@@ -36,6 +36,7 @@ security:
   jwt:
     secret: ${JWT_SECRET}
     expiration-minutes: ${TIME_EXPIRATION:120}
+    expiration-refresh-minutes: ${TIME_REFRESH_EXPIRATION}
 
 springdoc:
   api-docs:
