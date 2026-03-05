@@ -1,5 +1,6 @@
 package com.project.antiguaburguers.security;
 
+import com.project.antiguaburguers.utils.RolEnum;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,25 +27,25 @@ public class JwtService {
         this.expirationRefreshMinutes = expirationRefreshMinutes + 60_000;
     }
 
-    private String generateToken(String username, String role, Long time) {
+    private String generateToken(String username, RolEnum rol, Long time) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + time);
 
         return Jwts.builder()
                 .setSubject(username)
-                .setPayload('{' + role + '}')
+                .setPayload('{' + rol.toString() + '}')
                 .setIssuedAt(now)
                 .setExpiration(exp)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateToken(String username, String role) {
-        return generateToken(username, role, expirationMs);
+    public String generateToken(String username, RolEnum rol) {
+        return generateToken(username, rol, expirationMs);
     }
 
-    public String generateRefreshToken(String username, String role) {
-        return generateToken(username, role, expirationRefreshMinutes);
+    public String generateRefreshToken(String username, RolEnum rol) {
+        return generateToken(username, rol, expirationRefreshMinutes);
     }
 
     public String extractUsername(String token) {
