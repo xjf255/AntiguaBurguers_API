@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -101,16 +102,24 @@ public class UsuarioClienteService {
     }
 
     private Cookie createCookie(TokenEnum tokenName, String token, long maxAge) {
-        Cookie cookie = new Cookie(tokenName.toString(), token);
-        cookie.setMaxAge((int) maxAge * 60);
-        cookie.setPath("/");
+
         if(profile.equalsIgnoreCase("dev")){
-            cookie.setSecure(false); // false para dev
-            cookie.setHttpOnly(true);
+            ResponseCookie cookie = ResponseCookie.from(tokenName.toString(), token)
+                    .httpOnly(true)
+                    .secure(true) // Should be true in production with HTTPS
+                    .path("/")
+                    .maxAge(maxAge * 60)
+                    .sameSite("Lax")
+                    .build();
             return cookie;
         }
-        cookie.setSecure(true); // true para prod
-        cookie.setHttpOnly(true);
+        ResponseCookie cookie = ResponseCookie.from(tokenName.toString(), token)
+                .httpOnly(true)
+                .secure(true) // Should be true in production with HTTPS
+                .path("/")
+                .maxAge(maxAge * 60)
+                .sameSite("Lax")
+                .build();
         return cookie;
     }
 }

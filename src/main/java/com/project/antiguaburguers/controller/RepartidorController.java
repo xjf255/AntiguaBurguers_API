@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/repartidores")
-@CrossOrigin(origins = "*")
 public class RepartidorController {
 
     private final RepartidorService repartidorService;

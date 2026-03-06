@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/estados-pedido")
 @SecurityRequirement(name = "bearerAuth")
-@CrossOrigin(origins = "*")
 public class EstadoPedidoController {
 
     private final EstadoPedidoRepository estadoPedidoRepository;

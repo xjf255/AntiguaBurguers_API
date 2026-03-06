@@ -2,6 +2,7 @@ package com.project.antiguaburguers.controller;
 
 import com.project.antiguaburguers.dto.*;
 import com.project.antiguaburguers.service.UsuarioClienteService;
+import com.project.antiguaburguers.utils.TokenEnum;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,13 +23,13 @@ public class AuthController {
     }
 
     @PostMapping("/log-in")
-    public ResponseEntity<LoginResponseDTO> logIn(@RequestBody LoginUsuarioClienteDTO dto, @CookieValue(value = "token", required = false) String token, HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDTO> logIn(@RequestBody LoginUsuarioClienteDTO dto, @CookieValue(value = TokenEnum.ACCESS_TOKEN.toString(), required = false) String token, HttpServletResponse response) {
         if(token != null) return null;
         return ResponseEntity.ok(usuarioClienteService.logIn(dto,response));
     }
 
-    @GetMapping("/logout")
-    public String logout(@CookieValue(value = "access_token", required = false) String token, HttpServletResponse response) {
+    @PostMapping("/logout")
+    public String logout(@CookieValue(value = TokenEnum.ACCESS_TOKEN.toString(), required = false) String token, HttpServletResponse response) {
         if (token == null) {
             return "You are not logged in.";
         }
@@ -36,7 +37,7 @@ public class AuthController {
     }
 
     @GetMapping("/home")
-    public String home(@CookieValue(value = "access_token", required = false) String token, @CookieValue(value = "refresh_token", required = false) String refreshToken) {
+    public String home(@CookieValue(value = TokenEnum.ACCESS_TOKEN.toString(), required = true) String token, @CookieValue(value = TokenEnum.REFRESH_TOKEN.toString(), required = false) String refreshToken) {
         return (token == null) ? "Please login first" : "Welcome to the Home Page!";
     }
 

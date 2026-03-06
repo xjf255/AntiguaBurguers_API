@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/complementos")
-@CrossOrigin(origins = "*") // opcional
 public class ComplementoController {
 
     private final ComplementoService complementoService;

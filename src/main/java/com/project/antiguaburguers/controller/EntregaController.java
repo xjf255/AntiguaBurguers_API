@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/entregas")
 @SecurityRequirement(name = "bearerAuth")
-@CrossOrigin(origins = "*")
 public class EntregaController {
 
     private final EntregaService entregaService;
