@@ -2,8 +2,6 @@ package com.project.antiguaburguers.controller;
 
 import com.project.antiguaburguers.dto.*;
 import com.project.antiguaburguers.service.UsuarioClienteService;
-import com.project.antiguaburguers.utils.TokenEnum;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,27 +16,26 @@ public class AuthController {
     }
 
     @PostMapping("/sign-in")
-    public ResponseEntity<LoginResponseDTO> signIn(@RequestBody CreateRegisterDTO dto, HttpServletResponse response) {
-        return ResponseEntity.ok(usuarioClienteService.registerClient(dto, response));
+    public ResponseEntity<LoginResponseDTO> signIn(@RequestBody CreateRegisterDTO dto) {
+        return usuarioClienteService.registerClient(dto);
     }
 
     @PostMapping("/log-in")
-    public ResponseEntity<LoginResponseDTO> logIn(@RequestBody LoginUsuarioClienteDTO dto, @CookieValue(value = TokenEnum.ACCESS_TOKEN.toString(), required = false) String token, HttpServletResponse response) {
-        if(token != null) return null;
-        return ResponseEntity.ok(usuarioClienteService.logIn(dto,response));
+    public ResponseEntity<LoginResponseDTO> logIn(@RequestBody LoginUsuarioClienteDTO dto) {
+        return usuarioClienteService.logIn(dto);
     }
 
     @PostMapping("/logout")
-    public String logout(@CookieValue(value = TokenEnum.ACCESS_TOKEN.toString(), required = false) String token, HttpServletResponse response) {
-        if (token == null) {
-            return "You are not logged in.";
+    public ResponseEntity<String> logout(@CookieValue(value = "access_token", required = false) String accessToken, @CookieValue(value = "refresh_token", required = false) String refreshToken) {
+        if (accessToken == null || refreshToken == null) {
+            return ResponseEntity.ok("You are not logged in.");
         }
-        return usuarioClienteService.logOut(response);
+        return usuarioClienteService.logOut();
     }
 
     @GetMapping("/home")
-    public String home(@CookieValue(value = TokenEnum.ACCESS_TOKEN.toString(), required = true) String token, @CookieValue(value = TokenEnum.REFRESH_TOKEN.toString(), required = false) String refreshToken) {
-        return (token == null) ? "Please login first" : "Welcome to the Home Page!";
+    public String home(@CookieValue(value = "access_token", required = false) String accessToken, @CookieValue(value = "refresh_token", required = false) String refreshToken) {
+        return (accessToken == null || refreshToken == null) ? "Please login first" : "Welcome to the Home Page!";
     }
 
 }

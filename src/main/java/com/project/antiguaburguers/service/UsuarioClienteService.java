@@ -7,11 +7,11 @@ import com.project.antiguaburguers.security.JwtService;
 import com.project.antiguaburguers.utils.RolEnum;
 import com.project.antiguaburguers.utils.TokenEnum;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +32,7 @@ public class UsuarioClienteService {
                                  AuthenticationManager authManager,
                                  @Value("${security.jwt.expiration-minutes}") long expirationMinutes,
                                  @Value("${security.jwt.expiration-refresh-minutes}") long expirationRefreshMinutes,
-                                 @Value("${spring.profiles.active}") String profile,
+                                 @Value("${spring.profiles.active : dev}") String profile,
                                  JwtService jwtService, PasswordEncoder passwordEncoder, ClienteService clienteService) {
         this.usuarioRepository = usuarioRepository;
         this.authManager = authManager;
@@ -60,18 +60,23 @@ public class UsuarioClienteService {
     }
 
     @Transactional
-    public LoginResponseDTO registerClient(CreateRegisterDTO dto, HttpServletResponse response){
+    public ResponseEntity<LoginResponseDTO> registerClient(CreateRegisterDTO dto){
         ClienteDTO client = clienteService.crearCliente(dto.client());
         UsuarioCliente register = register(dto.signInUsuarioClienteDTO());
         String token = jwtService.generateToken(register.getUsuario(), RolEnum.CLIENTE);
         String refreshToken = jwtService.generateRefreshToken(register.getUsuario(), RolEnum.CLIENTE);
 
-        response.addCookie(createCookie(TokenEnum.ACCESS_TOKEN,token,expirationMinutes));
-        response.addCookie(createCookie(TokenEnum.REFRESH_TOKEN,refreshToken, expirationRefreshMinutes));
-        return new LoginResponseDTO(register.getUsuario(), client.dpi(), register.getIsAdmin());
+        ResponseCookie cookie = createCookie(TokenEnum.ACCESS_TOKEN, token, expirationMinutes);
+        ResponseCookie refreshCookie = createCookie(TokenEnum.REFRESH_TOKEN, refreshToken, expirationRefreshMinutes);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(
+                new LoginResponseDTO(register.getUsuario(), client.dpi(), register.getIsAdmin())
+        );
     }
 
-    public LoginResponseDTO logIn(LoginUsuarioClienteDTO dto, HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDTO> logIn(LoginUsuarioClienteDTO dto) {
         var auth = new UsernamePasswordAuthenticationToken(dto.usuario(), dto.password());
         authManager.authenticate(auth); // si falla -> exception
 
@@ -85,41 +90,32 @@ public class UsuarioClienteService {
         String token = jwtService.generateToken(dto.usuario(), (isAdmin) ? RolEnum.ADMINISTRADOR : RolEnum.CLIENTE);
         String refreshToken = jwtService.generateRefreshToken(dto.usuario(), isAdmin ? RolEnum.ADMINISTRADOR : RolEnum.CLIENTE);
 
-        response.addCookie(createCookie(TokenEnum.ACCESS_TOKEN,token, expirationMinutes));
-        response.addCookie(createCookie(TokenEnum.REFRESH_TOKEN,refreshToken, expirationRefreshMinutes));
-        return new LoginResponseDTO(dto.usuario(), cliente.dpi(), isAdmin);
+        ResponseCookie cookie = createCookie(TokenEnum.ACCESS_TOKEN, token, expirationMinutes);
+        ResponseCookie refreshCookie = createCookie(TokenEnum.REFRESH_TOKEN, refreshToken, expirationRefreshMinutes);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(new LoginResponseDTO(dto.usuario(), cliente.dpi(), isAdmin));
     }
 
-    public String logOut(HttpServletResponse response) {
-        Cookie cookie = new Cookie(TokenEnum.ACCESS_TOKEN.toString(), "");
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        Cookie refreshCookie = new Cookie(TokenEnum.REFRESH_TOKEN.toString(), "");
-        refreshCookie.setMaxAge(0);
-        refreshCookie.setPath("/");
-        response.addCookie(refreshCookie);
-        return "Logout successful!";
+    public ResponseEntity<String> logOut() {
+        ResponseCookie cookie = createCookie(TokenEnum.ACCESS_TOKEN, "", 0);
+        ResponseCookie refreshCookie = createCookie(TokenEnum.REFRESH_TOKEN, "", 0);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body("Logout successful!");
     }
 
-    private Cookie createCookie(TokenEnum tokenName, String token, long maxAge) {
-
-        if(profile.equalsIgnoreCase("dev")){
-            ResponseCookie cookie = ResponseCookie.from(tokenName.toString(), token)
-                    .httpOnly(true)
-                    .secure(true) // Should be true in production with HTTPS
-                    .path("/")
-                    .maxAge(maxAge * 60)
-                    .sameSite("Lax")
-                    .build();
-            return cookie;
-        }
-        ResponseCookie cookie = ResponseCookie.from(tokenName.toString(), token)
+    private ResponseCookie createCookie(TokenEnum tokenName, String token, long minAge) {
+        boolean isSecure = !profile.equalsIgnoreCase("dev");
+        return ResponseCookie.from(tokenName.toString(), token)
                 .httpOnly(true)
-                .secure(true) // Should be true in production with HTTPS
+                .secure(isSecure) // Should be true in production with HTTPS
                 .path("/")
-                .maxAge(maxAge * 60)
-                .sameSite("Lax")
+                .maxAge(minAge * 60)
+                .sameSite("None")
                 .build();
-        return cookie;
     }
 }
