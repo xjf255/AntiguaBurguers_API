@@ -37,6 +37,8 @@ security:
     secret: ${JWT_SECRET}
     expiration-minutes: ${TIME_EXPIRATION:120}
     expiration-refresh-minutes: ${TIME_REFRESH_EXPIRATION}
+  cors:
+    allowOrigins: http://localhost:5173
 
 springdoc:
   api-docs:
@@ -71,6 +73,9 @@ security:
   jwt:
     secret: ${JWT_SECRET}
     expiration-minutes: ${TIME_EXPIRATION:120}
+  cors:
+    allowOrigins:
+
 
 admin:
   username: ${ADMIN_USERNAME:admin}

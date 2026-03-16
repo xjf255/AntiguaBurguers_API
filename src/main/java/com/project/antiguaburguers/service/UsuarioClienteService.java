@@ -9,9 +9,7 @@ import com.project.antiguaburguers.utils.TokenEnum;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +30,7 @@ public class UsuarioClienteService {
                                  AuthenticationManager authManager,
                                  @Value("${security.jwt.expiration-minutes}") long expirationMinutes,
                                  @Value("${security.jwt.expiration-refresh-minutes}") long expirationRefreshMinutes,
-                                 @Value("${spring.profiles.active : dev}") String profile,
+                                 @Value("${spring.profiles.active:dev}") String profile,
                                  JwtService jwtService, PasswordEncoder passwordEncoder, ClienteService clienteService) {
         this.usuarioRepository = usuarioRepository;
         this.authManager = authManager;
@@ -45,13 +43,13 @@ public class UsuarioClienteService {
     }
 
     public UsuarioCliente register(SignInUsuarioClienteDTO dto) {
-        // validar que no exista usuario
         if (usuarioRepository.existsById(dto.usuario())) {
             throw new IllegalArgumentException("El usuario ya existe");
         }
 
         UsuarioCliente entity = new UsuarioCliente();
         entity.setUsuario(dto.usuario());
+        entity.setIsAdmin(false);
         entity.setDpi(dto.dpi());
         entity.setPasswordHash(passwordEncoder.encode(dto.password()));
 
@@ -60,7 +58,7 @@ public class UsuarioClienteService {
     }
 
     @Transactional
-    public ResponseEntity<LoginResponseDTO> registerClient(CreateRegisterDTO dto){
+    public ResponseAuthDTO<LoginResponseDTO> registerClient(CreateRegisterDTO dto){
         ClienteDTO client = clienteService.crearCliente(dto.client());
         UsuarioCliente register = register(dto.signInUsuarioClienteDTO());
         String token = jwtService.generateToken(register.getUsuario(), RolEnum.CLIENTE);
@@ -69,14 +67,10 @@ public class UsuarioClienteService {
         ResponseCookie cookie = createCookie(TokenEnum.ACCESS_TOKEN, token, expirationMinutes);
         ResponseCookie refreshCookie = createCookie(TokenEnum.REFRESH_TOKEN, refreshToken, expirationRefreshMinutes);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(
-                new LoginResponseDTO(register.getUsuario(), client.dpi(), register.getIsAdmin())
-        );
+        return new ResponseAuthDTO<LoginResponseDTO>(cookie,refreshCookie, new LoginResponseDTO(register.getUsuario(), client.dpi(), false));
     }
 
-    public ResponseEntity<LoginResponseDTO> logIn(LoginUsuarioClienteDTO dto) {
+    public ResponseAuthDTO<LoginResponseDTO> logIn(LoginUsuarioClienteDTO dto) {
         var auth = new UsernamePasswordAuthenticationToken(dto.usuario(), dto.password());
         authManager.authenticate(auth); // si falla -> exception
 
@@ -93,29 +87,23 @@ public class UsuarioClienteService {
         ResponseCookie cookie = createCookie(TokenEnum.ACCESS_TOKEN, token, expirationMinutes);
         ResponseCookie refreshCookie = createCookie(TokenEnum.REFRESH_TOKEN, refreshToken, expirationRefreshMinutes);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(new LoginResponseDTO(dto.usuario(), cliente.dpi(), isAdmin));
+        return new ResponseAuthDTO<LoginResponseDTO>(cookie, refreshCookie, new LoginResponseDTO(dto.usuario(), cliente.dpi(), isAdmin));
     }
 
-    public ResponseEntity<String> logOut() {
+    public ResponseAuthDTO<String> logOut() {
         ResponseCookie cookie = createCookie(TokenEnum.ACCESS_TOKEN, "", 0);
         ResponseCookie refreshCookie = createCookie(TokenEnum.REFRESH_TOKEN, "", 0);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body("Logout successful!");
+        return new ResponseAuthDTO<String>(cookie,refreshCookie, "Logout successful!");
     }
 
-    private ResponseCookie createCookie(TokenEnum tokenName, String token, long minAge) {
+    private ResponseCookie createCookie(TokenEnum tokenName, String token, long minuteAge) {
         boolean isSecure = !profile.equalsIgnoreCase("dev");
         return ResponseCookie.from(tokenName.toString(), token)
                 .httpOnly(true)
                 .secure(isSecure) // Should be true in production with HTTPS
                 .path("/")
-                .maxAge(minAge * 60)
-                .sameSite("None")
+                .maxAge(minuteAge * 60)
+                .sameSite("None") // Frontend(React) Backend(SpringBoot)
                 .build();
     }
 }
