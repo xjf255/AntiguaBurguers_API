@@ -66,7 +66,7 @@ public class PedidoService {
     }
 
     private String nextPedidoId() {
-        Long seqVal = ((Number) em.createNativeQuery("SELECT NEXT VALUE FOR seq_num_pedido").getSingleResult()).longValue();
+        Long seqVal = ((Number) em.createNativeQuery("SELECT NEXT VALUE FOR seq_pedido").getSingleResult()).longValue();
         return "PED" + String.format("%07d", seqVal);
     }
 
@@ -106,6 +106,7 @@ public class PedidoService {
 
         pedido = pedidoRepo.save(pedido);
 
+        List<DetallePedido> detalles = new java.util.ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
         for (var itemDto : dto.items()) {
             DetallePedido detalle = createMapper.toEntity(itemDto);
@@ -133,11 +134,12 @@ public class PedidoService {
             BigDecimal subtotal = detalle.getPrecioUnitario()
                     .multiply(BigDecimal.valueOf(detalle.getCantidad()));
             detalle.setSubtotal(subtotal);
-
             total = total.add(subtotal);
-
-            detalleRepo.save(detalle);
+            detalles.add(detalle);
         }
+
+        // Persiste todos los detalles en un solo batch en lugar de N saves individuales
+        detalleRepo.saveAll(detalles);
 
         pedido.setTotal(total);
         pedidoRepo.save(pedido);

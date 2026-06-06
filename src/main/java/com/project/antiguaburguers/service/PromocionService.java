@@ -20,14 +20,10 @@ import java.util.stream.Collectors;
 @Service
 public class PromocionService {
 
-    private final PromocionRepository promoRepo;
-    private final ComboRepository comboRepo;
     private final PromocionRepository promocionRepository;
     private final ComboRepository comboRepository;
 
-    public PromocionService(PromocionRepository promoRepo, ComboRepository comboRepo, PromocionRepository promocionRepository, ComboRepository comboRepository) {
-        this.promoRepo = promoRepo;
-        this.comboRepo = comboRepo;
+    public PromocionService(PromocionRepository promocionRepository, ComboRepository comboRepository) {
         this.promocionRepository = promocionRepository;
         this.comboRepository = comboRepository;
     }
@@ -41,12 +37,9 @@ public class PromocionService {
 
     @Transactional
     public List<PromocionDTO> listarVigentes() {
-        LocalDate hoy = LocalDate.now();
-        return promocionRepository.findAll().stream()
-                .filter(p ->
-                        (p.getFechaInicio() == null || !hoy.isBefore(p.getFechaInicio())) &&
-                                (p.getFechaFin() == null || !hoy.isAfter(p.getFechaFin()))
-                )
+        // Filtra directamente en SQL en lugar de cargar toda la tabla
+        return promocionRepository.promocionVigente(null, LocalDate.now())
+                .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }

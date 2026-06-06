@@ -38,7 +38,7 @@ security:
     expiration-minutes: ${TIME_EXPIRATION:120}
     expiration-refresh-minutes: ${TIME_REFRESH_EXPIRATION}
   cors:
-    allowOrigins: http://localhost:5173
+    allowOrigins: ${CORS_ORIGINS}
 
 springdoc:
   api-docs:

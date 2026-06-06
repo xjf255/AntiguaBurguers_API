@@ -15,7 +15,7 @@ public class CorsConfig {
 
     public CorsConfig(@Value("${security.cors.allowOrigins}") String origins){
         this.allowOrigins = origins;
-    };
+    }
 
     @Bean
     public CorsConfigurationSource corsConfiguration() {
@@ -23,7 +23,17 @@ public class CorsConfig {
         config.setAllowedOrigins(List.of(allowOrigins.split(",")));
         config.setAllowCredentials(true);
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+
+        config.setAllowedHeaders(List.of(
+                "Content-Type",
+                "Authorization",
+                "X-Requested-With",
+                "Accept",
+                "Origin"
+        ));
+
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

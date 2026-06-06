@@ -12,6 +12,8 @@ public interface ComboBebidaIdRepository extends JpaRepository<ComboBebida, Comb
 
     List<ComboBebida> findAllByCombo_NumCombo(String numCombo);
 
+    List<ComboBebida> findAllByCombo_NumComboIn(List<String> numCombos);
+
     void deleteByComboAndBebida(Combo combo, Bebida bebida);
 }
 

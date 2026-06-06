@@ -15,6 +15,8 @@ public interface ComboComplementoRepository extends JpaRepository<ComboComplemen
 
     List<ComboComplemento> findAllByCombo_NumCombo(String numCombo);
 
+    List<ComboComplemento> findAllByCombo_NumComboIn(List<String> numCombos);
+
     void deleteByComboAndComplemento(Combo combo, Complemento complemento);
 }
 

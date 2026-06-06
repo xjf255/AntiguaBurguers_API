@@ -41,7 +41,7 @@ public class EntregaService {
         if (!repartidor.isEstado())
             throw new IllegalStateException("El repartidor no está disponible.");
 
-        EstadoEntrega enRuta = estadoEntregaRepo.findById(EstadoEntregaEnum.EN_RUTA.toString())
+        EstadoEntrega enRuta = estadoEntregaRepo.findById(EstadoEntregaEnum.EN_RUTA)
                 .orElseThrow(() -> new EntityNotFoundException("Estado EN_RUTA no encontrado."));
 
         // Crear o actualizar entrega
@@ -65,7 +65,7 @@ public class EntregaService {
         Entrega entrega = entregaRepo.findById(numPedido)
                 .orElseThrow(() -> new EntityNotFoundException("Entrega no encontrada para pedido: " + numPedido));
 
-        EstadoEntrega entregado = estadoEntregaRepo.findById(EstadoEntregaEnum.ENTREGADO.toString())
+        EstadoEntrega entregado = estadoEntregaRepo.findById(EstadoEntregaEnum.ENTREGADO)
                 .orElseThrow(() -> new EntityNotFoundException("Estado ENTREGADO no encontrado."));
 
         entrega.setEstado(entregado);

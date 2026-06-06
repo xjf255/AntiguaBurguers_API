@@ -20,7 +20,7 @@ public class Pedido {
     @Column(nullable = false)
     private LocalDateTime fecha = LocalDateTime.now();
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "estado", referencedColumnName = "estado", nullable = false)
     private EstadoPedido estado;
 

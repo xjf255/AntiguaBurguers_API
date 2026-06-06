@@ -54,6 +54,7 @@ public class ComboController {
 
     @GetMapping
     public List<ComboDetailDTO> listarCombosConDetalle() {
+        System.out.println(menuService.listarCombosConDetalle());
         return menuService.listarCombosConDetalle();
     }
 

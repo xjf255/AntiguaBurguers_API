@@ -268,20 +268,32 @@ public class MenuService {
 
     @Transactional
     public List<ComboDetailDTO> listarCombosConDetalle() {
-        var combos = comboRepo.findComboByExistenciaTrue();
+        // JOIN FETCH carga hamburguesas en 1 query en lugar de N queries individuales
+        var combos = comboRepo.findCombosConHamburguesasDisponibles();
+        if (combos.isEmpty()) return List.of();
+
+        // Precargar bebidas y complementos de todos los combos en 2 queries planas (batch)
+        var numCombos = combos.stream().map(Combo::getNumCombo).collect(Collectors.toList());
+        var todasBebidas = cbRepo.findAllByCombo_NumComboIn(numCombos);
+        var todosComplementos = ccRepo.findAllByCombo_NumComboIn(numCombos);
+
+        // Agrupar en mapas para lookup O(1) en lugar de queries individuales
+        var bebidosPorCombo = todasBebidas.stream()
+                .collect(Collectors.groupingBy(cb -> cb.getCombo().getNumCombo()));
+        var complementosPorCombo = todosComplementos.stream()
+                .collect(Collectors.groupingBy(cc -> cc.getCombo().getNumCombo()));
 
         return combos.stream().map(combo -> {
-            var hambs = chRepo.findAllByCombo_NumCombo(combo.getNumCombo())
-                    .stream()
+            var hambs = combo.getHamburguesas().stream()
                     .map(ch -> ch.getNombreHamburguesa().getNombre())
                     .collect(Collectors.toList());
 
-            var bebidas = cbRepo.findAllByCombo_NumCombo(combo.getNumCombo())
+            var bebidas = bebidosPorCombo.getOrDefault(combo.getNumCombo(), List.of())
                     .stream()
                     .map(cb -> cb.getBebida().getNombre() + " " + cb.getBebida().getCantidad())
                     .collect(Collectors.toList());
 
-            var comps = ccRepo.findAllByCombo_NumCombo(combo.getNumCombo())
+            var comps = complementosPorCombo.getOrDefault(combo.getNumCombo(), List.of())
                     .stream()
                     .map(cc -> cc.getComplemento().getNombre())
                     .collect(Collectors.toList());
